@@ -1,0 +1,25 @@
+#!/bin/sh
+#sleep 10
+
+resultb=`mysql -h localhost --user=rroethofsql1 --password=xxxxx --skip-column-names -e "SELECT DISTINCT source FROM rroethofsql1.blacklist"`
+itemsb=$(echo $resultb | tr " " "\n")
+
+for itemb in $itemsb
+do
+    echo "- $itemb bans." 
+
+    resulta=`mysql -h localhost --user=rroethofsql1 --password=xxxx --skip-column-names -e "SELECT DISTINCT ip FROM rroethofsql1.blacklist WHERE source = '$itemb' ORDER BY ip"`
+    itemsa=$(echo $resulta | tr " " "\n")
+    for itema in $itemsa
+    do
+	if [ $itemb="import" ]; then
+    	    echo "  - Blacklisting $itema for $itemb" 
+    	    iptables -I fail2ban-ssh -s $itema -j DROP
+	else
+    	    echo "  - Blacklisting $itema for $itemb" 
+    	    iptables -I fail2ban-$itemb -s $itema -j DROP
+	fi
+    done
+
+done
+

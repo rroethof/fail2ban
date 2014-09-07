@@ -1,0 +1,186 @@
+# Fail2Ban configuration file.
+#
+# This file was composed for Debian systems from the original one
+#  provided now under /usr/share/doc/fail2ban/examples/jail.conf
+#  for additional examples.
+#
+# To avoid merges during upgrades DO NOT MODIFY THIS FILE
+# and rather provide your changes in /etc/fail2ban/jail.local
+#
+# Author: Yaroslav O. Halchenko <debian@onerussian.com>
+#
+# $Revision$
+#
+
+# The DEFAULT allows a global definition of the options. They can be overridden
+# in each jail afterwards.
+
+[DEFAULT]
+
+# "ignoreip" can be an IP address, a CIDR mask or a DNS host
+ignoreip = 127.0.0.1/8 84.87.94.100/32
+
+## bantime of 3600 = 60*60 = one hour
+## bantime of 86400 = 60*60*24 = one day
+## bantime of 604800 = 60*60*24*7 = one week
+## bantime of 2592000 = 60*60*24*30 = (approx) one month
+## bantime of 31536000 = 60*60*24*365 = (approx) one year
+bantime  = 2592000
+maxretry = 3
+
+# "backend" specifies the backend used to get files modification. Available
+# options are "gamin", "polling" and "auto".
+# yoh: For some reason Debian shipped python-gamin didn't work as expected
+#      This issue left ToDo, so polling is default backend for now
+backend = auto
+
+#
+# Destination email address used solely for the interpolations in
+# jail.{conf,local} configuration files.
+destemail = fail2ban@familieroethof.nl
+
+#
+# ACTIONS
+#
+
+# Default banning action (e.g. iptables, iptables-new,
+# iptables-multiport, shorewall, etc) It is used to define
+# action_* variables. Can be overridden globally or per
+# section within jail.local file
+banaction = iptables-allports-permanent-sql
+
+# email action. Since 0.8.1 upstream fail2ban uses sendmail
+# MTA for the mailing. Change mta configuration parameter to mail
+# if you want to revert to conventional 'mail'.
+mta = mail
+
+# Default protocol
+protocol = tcp
+
+# Specify chain where jumps would need to be added in iptables-* actions
+chain = INPUT
+
+#
+# Action shortcuts. To be used to define action parameter
+
+# The simplest action to take: ban only
+action_ = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+
+# ban & send an e-mail with whois report to the destemail.
+action_mw = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+              %(mta)s-whois[name=%(__name__)s, dest="%(destemail)s", protocol="%(protocol)s", chain="%(chain)s"]
+
+# ban & send an e-mail with whois report and relevant log lines
+# to the destemail.
+action_mwl = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+               %(mta)s-whois-lines[name=%(__name__)s, dest="%(destemail)s", logpath=%(logpath)s, chain="%(chain)s"]
+
+# Choose default action.  To change, just override value of 'action' with the
+# interpolation to the chosen action shortcut (e.g.  action_mw, action_mwl, etc) in jail.local
+# globally (section [DEFAULT]) or per specific section
+action = %(action_)s
+
+#
+# JAILS
+#
+
+# Next jails corresponds to the standard configuration in Fail2ban 0.6 which
+# was shipped in Debian. Enable any defined here jail by including
+#
+# [SECTION_NAME]
+# enabled = true
+
+#
+# in /etc/fail2ban/jail.local.
+#
+# Optionally you may override any other parameter (e.g. banaction,
+# action, port, logpath, etc) in that section within jail.local
+
+[ssh]
+enabled  = true
+port     = ssh
+banaction = iptables-allports-permanent-sql
+filter   = sshd
+logpath  = /var/log/auth.log
+maxretry = 6
+
+[dropbear]
+enabled  = false
+port     = ssh
+filter   = sshd
+logpath  = /var/log/dropbear
+maxretry = 6
+
+[ssh-ddos]
+enabled  = true
+port     = ssh
+banaction = iptables-allports-permanent-sql
+filter   = sshd-ddos
+logpath  = /var/log/auth.log
+maxretry = 6
+
+#
+# HTTP servers
+#
+[apache]
+enabled  = true
+port     = http,https
+banaction = iptables-allports-permanent-sql
+filter   = apache-auth
+logpath  = /var/customers/logs/*error.log
+maxretry = 6
+
+[apache-multiport]
+enabled   = true
+port      = http,https
+banaction = iptables-allports-permanent-sql
+filter    = apache-auth
+logpath   = /var/customers/logs/*error.log
+maxretry  = 6
+
+[apache-noscript]
+enabled  = true
+port     = http,https
+banaction = iptables-allports-permanent-sql
+filter   = apache-noscript
+logpath  = /var/customers/webs/*error.log
+maxretry = 6
+
+[apache-overflows]
+enabled  = true
+port     = http,https
+banaction = iptables-allports-permanent-sql
+filter   = apache-overflows
+logpath  = /var/customers/webs/*error.log
+maxretry = 2
+
+#
+# FTP servers
+#
+
+[proftpd]
+enabled  = true
+port     = ftp,ftp-data,ftps,ftps-data
+banaction = iptables-allports-permanent-sql
+filter   = proftpd
+logpath  = /var/log/proftpd/proftpd.log
+maxretry = 6
+
+#
+# Mail servers
+#
+
+[postfix]
+enabled  = true
+port     = smtp,ssmtp
+banaction = iptables-allports-permanent-sql
+filter   = postfix
+logpath  = /var/log/mail.log
+
+[dovecot]
+enabled = true
+port    = smtp,ssmtp,imap2,imap3,imaps,pop3,pop3s
+banaction = iptables-allports-permanent-sql
+filter  = dovecot
+logpath = /var/log/mail.log
+
