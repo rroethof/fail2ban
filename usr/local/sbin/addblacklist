@@ -1,7 +1,10 @@
 #!/bin/sh
-#             /usr/local/sbin/addblacklist <ip> <time> <name>
+# Usage:/usr/local/sbin/addblacklist <ip> <time> <name>
+DATABASE='domotica'
+USER='domotica'
+PASSWORD='xxxx'
 IP=$1
 TIME=$2
 NAME=$3
 HOSTNAME=`hostname -f`
-echo "INSERT INTO blacklist (ip, date, sourcehost, source) VALUES ('$IP', '$TIME', '$HOSTNAME', '$NAME');" | mysql rroethofsql1;
+echo "INSERT INTO blacklist (ip, date, sourcehost, source) VALUES ('$IP', '$TIME', '$HOSTNAME', '$NAME');" | mysql -u $USER -p $PASSWORD $DATABASE;
