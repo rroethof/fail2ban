@@ -1,14 +1,16 @@
 #!/bin/sh
 #sleep 10
-
-resultb=`mysql -h localhost --user=rroethofsql1 --password=xxxxx --skip-column-names -e "SELECT DISTINCT source FROM rroethofsql1.blacklist"`
+DATABASE='domotica'
+USER='domotia'
+PASSWORD='xxx'
+resultb=`mysql -h localhost --user=$USER --password=$PASSWORD --skip-column-names -e "SELECT DISTINCT source FROM $DATABASE.blacklist"`
 itemsb=$(echo $resultb | tr " " "\n")
 
 for itemb in $itemsb
 do
     echo "- $itemb bans." 
 
-    resulta=`mysql -h localhost --user=rroethofsql1 --password=xxxx --skip-column-names -e "SELECT DISTINCT ip FROM rroethofsql1.blacklist WHERE source = '$itemb' ORDER BY ip"`
+    resulta=`mysql -h localhost --user=$USER --password=$PASSWORD --skip-column-names -e "SELECT DISTINCT ip FROM $DATABASE.blacklist WHERE source = '$itemb' ORDER BY ip"`
     itemsa=$(echo $resulta | tr " " "\n")
     for itema in $itemsa
     do
