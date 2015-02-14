@@ -7,4 +7,4 @@ IP=$1
 TIME=$2
 NAME=$3
 HOSTNAME=`hostname -f`
-echo "INSERT INTO blacklist (ip, date, sourcehost, source) VALUES ('$IP', '$TIME', '$HOSTNAME', '$NAME');" | mysql -u $USER -p $PASSWORD $DATABASE;
+echo "INSERT INTO blacklist (ip, date, sourcehost, source) VALUES ('$IP', '$TIME', '$HOSTNAME', '$NAME');" | mysql -h localhost --user=$USER --password=$PASSWORD $DATABASE;
